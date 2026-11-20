@@ -1,0 +1,11 @@
+{
+  "belebele_por_Latn": {
+    "name": "belebele_por_Latn",
+    "alias": "belebele_por_Latn",
+    "sample_len": 900,
+    "acc,none": 0.8344444444444444,
+    "acc_stderr,none": 0.012396262021376064,
+    "acc_norm,none": 0.8344444444444444,
+    "acc_norm_stderr,none": 0.012396262021376064
+  }
+}

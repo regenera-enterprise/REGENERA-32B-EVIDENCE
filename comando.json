@@ -1,0 +1,14 @@
+[
+  "/Users/enterprise/.venvs/regenera32b/bin/python",
+  "-u",
+  "/Users/enterprise/Downloads/REGENERA_AVALIACAO_RACIOCINIO_V2_6_3_50GB/avaliar.py",
+  "_worker",
+  "--model",
+  "/Users/enterprise/Desktop/32B-REGENERA",
+  "--root",
+  "/Users/enterprise/Desktop/32B-REGENERA/evidencias/20261118_192731_full_afa71116",
+  "--mode",
+  "full",
+  "--max-tokens",
+  "8192"
+]

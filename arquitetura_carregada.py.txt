@@ -1,0 +1,68 @@
+"""Regenera compatibility module for MLX LM and Transformers.
+
+Install as mlx_lm/models/regenera.py in the same environment as olmo3.py.
+Uses the installed OLMo3 implementation without changing tensor names,
+weights, attention, RoPE, quantization, or cache behavior.
+
+Import this module before standalone AutoConfig/AutoTokenizer calls.
+mlx_lm's normal model-first loading path imports it automatically.
+This module does not register a PyTorch AutoModel implementation.
+"""
+
+from .olmo3 import Model as _Olmo3Model
+from .olmo3 import ModelArgs
+
+from transformers import AutoConfig, AutoTokenizer, Olmo3Config
+from transformers.models.auto.configuration_auto import CONFIG_MAPPING
+from transformers.models.auto.tokenization_auto import TOKENIZER_MAPPING
+
+__all__ = ["Model", "ModelArgs", "RegeneraConfig", "register_transformers"]
+
+
+class Model(_Olmo3Model):
+    """MLX entry point; inherits the installed OLMo3 implementation intact."""
+
+
+class RegeneraConfig(Olmo3Config):
+    """OLMo3-compatible configuration under the regenera identifier."""
+
+    model_type = "regenera"
+
+
+def register_transformers():
+    """Register config and tokenizer; reject unrelated config collisions.
+
+    Handles the legacy (slow, fast) tokenizer mapping and the newer
+    single-class mapping. Repeated calls and module reloads are supported.
+    Dependency/API errors are deliberately not hidden.
+    """
+    existing = CONFIG_MAPPING.get("regenera")
+    if existing is not None and existing is not RegeneraConfig:
+        if (existing.__module__, existing.__name__) != (
+            RegeneraConfig.__module__, RegeneraConfig.__name__
+        ):
+            raise RuntimeError(
+                "The name 'regenera' is already registered to another config: "
+                f"{existing.__module__}.{existing.__name__}"
+            )
+
+    tokenizer_classes = TOKENIZER_MAPPING[Olmo3Config]
+    if isinstance(tokenizer_classes, tuple):
+        if len(tokenizer_classes) != 2 or all(
+            cls is None for cls in tokenizer_classes
+        ):
+            raise RuntimeError("Invalid OLMo3 tokenizer mapping.")
+        tokenizer_kwargs = {
+            "slow_tokenizer_class": tokenizer_classes[0],
+            "fast_tokenizer_class": tokenizer_classes[1],
+        }
+    elif isinstance(tokenizer_classes, type):
+        tokenizer_kwargs = {"tokenizer_class": tokenizer_classes}
+    else:
+        raise RuntimeError("Unsupported OLMo3 tokenizer mapping.")
+
+    AutoTokenizer.register(RegeneraConfig, exist_ok=True, **tokenizer_kwargs)
+    AutoConfig.register("regenera", RegeneraConfig, exist_ok=True)
+
+
+register_transformers()
